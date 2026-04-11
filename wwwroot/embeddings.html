@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedding Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #layout {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        #plot-container {
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        #plot {
+            width: 100%;
+            height: 100%;
+        }
+
+        #sidebar {
+            width: 30%;
+            background-color: #16213e;
+            border-left: 1px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #sidebar h2 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        #text-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        #text-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #0f3460;
+            border-left: 3px solid #e94560;
+            margin-bottom: 8px;
+            border-radius: 2px;
+            word-break: break-word;
+        }
+
+        #text-list span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 10px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #e94560;
+            cursor: pointer;
+            font-size: 1.3em;
+            padding: 0;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .remove-btn:hover {
+            color: #ff6b7a;
+        }
+
+        #input-area {
+            display: flex;
+        }
+
+        #text-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #0f3460;
+            border: 1px solid #e94560;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            border-radius: 2px;
+        }
+
+        #text-input:focus {
+            outline: none;
+            border-color: #ff6b7a;
+            box-shadow: 0 0 5px rgba(233, 69, 96, 0.3);
+        }
+
+        #text-input::placeholder {
+            color: #666;
+        }
+
+        #text-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="layout">
+        <div id="plot-container">
+            <div id="plot"></div>
+        </div>
+        <div id="sidebar">
+            <h2>Texts</h2>
+            <ul id="text-list"></ul>
+            <div id="input-area">
+                <input id="text-input" type="text" placeholder="Type text and press Enter…" autocomplete="off">
+            </div>
+        </div>
+    </div>
+    <script type="module" src="embeddings.js"></script>
+</body>
+</html>

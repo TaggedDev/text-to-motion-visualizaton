@@ -5,10 +5,8 @@ namespace MotionDataVisualization.Controllers;
 
 [ApiController]
 [Route("api/clip")]
-public class TextEmbeddingController : ControllerBase
+public class TextEmbeddingController(CLIPModel clipModel) : ControllerBase
 {
-    private readonly CLIPModel _clipModel = new();
-
     [HttpGet]
     public ActionResult<float[]> GetTextEmbedding([FromQuery] string text)
     {
@@ -19,7 +17,7 @@ public class TextEmbeddingController : ControllerBase
 
         try
         {
-            var embedding = _clipModel.GetTextEmbedding(text);
+            var embedding = clipModel.GetTextEmbedding(text);
             return Ok(embedding);
         }
         catch (Exception ex)
