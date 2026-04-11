@@ -1,22 +1,12 @@
-﻿using NumSharp;
+using MotionDataVisualization.IOFactory;
 
-namespace MotionDataVisualization;
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-internal class Program
-{
-    private static void Main()
-    {
-        const string rootWithBins = @"D:\Code\CSharp\text-to-motion\dataset\new_joint_vecs";
-        string[] files = Directory.GetFiles(rootWithBins, "*.npy")
-            .Where(file => !file.EndsWith(".clip.bin"))
-            .ToArray();
+builder.Services.AddSingleton<IIOFactory, NpyIOFactory>();
+builder.Services.AddControllers();
 
-        foreach (var file in files)
-        {
-            Console.WriteLine($"File: {file}");
-            NDArray ndArray = np.load(file);
-            Console.WriteLine(string.Join(", ", ndArray.shape));
-            break;
-        }
-    }
-}
+WebApplication app = builder.Build();
+
+app.MapControllers();
+
+app.Run();
