@@ -1,48 +1,17 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MotionDataVisualization.IOFactory;
 using MotionDataVisualization.Models;
 
 namespace MotionDataVisualization.Controllers;
 
-[ApiController]
-public class MotionController : ControllerBase
+[Route("api")]
+public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBase
 {
-    private readonly IIOFactory _ioFactory;
-
-    public MotionController(IIOFactory ioFactory)
-    {
-        _ioFactory = ioFactory;
-    }
-
-    [HttpGet("count")]
-    public int GetCount() => _ioFactory.GetFileCount();
-
-    [HttpGet("files")]
-    public IReadOnlyList<string> GetFiles() => _ioFactory.GetFileNames();
-
-    [HttpGet("files/{name}")]
-    public ActionResult<MotionArray> GetFile(string name)
-    {
-        try
-        {
-            return _ioFactory.LoadByName(name);
-        }
-        catch (FileNotFoundException)
-        {
-            return NotFound(new { error = $"File '{name}' not found." });
-        }
-    }
-
-    [HttpGet("random")]
-    public MotionArray GetRandom() => _ioFactory.LoadRandom();
-
-    // --- Three.js frontend API ---
-
-    [HttpGet("api/animations")]
+    [HttpGet("animations")]
     public IEnumerable<object> GetAnimations()
     {
         // Cap the list so the UI stays responsive; HumanML3D has ~14K files.
-        return _ioFactory.GetFileNames()
+        return ioFactory.GetFileNames()
             .Take(500)
             .Select(name => new
             {
@@ -53,7 +22,7 @@ public class MotionController : ControllerBase
             });
     }
 
-    [HttpGet("api/animation/{split}/{id}")]
+    [HttpGet("animation/{split}/{id}")]
     public IActionResult GetAnimation(string split, string id)
     {
         string name = id.EndsWith(".npy", StringComparison.OrdinalIgnoreCase) ? id : id + ".npy";
@@ -61,7 +30,7 @@ public class MotionController : ControllerBase
         MotionArray motion;
         try
         {
-            motion = _ioFactory.LoadByName(name);
+            motion = ioFactory.LoadByName(name);
         }
         catch (FileNotFoundException)
         {
@@ -73,18 +42,18 @@ public class MotionController : ControllerBase
 
         int frames = motion.Shape[0];
         int featureDim = motion.Shape[1];
-        const int Joints = 22;
+        const int joints = 22;
 
         float[][] positions = new float[frames][];
 
-        if (featureDim == Joints * 3)
+        if (featureDim == joints * 3)
         {
             // Raw joint positions: [frames, 66]
             for (int f = 0; f < frames; f++)
             {
                 float[] src = motion.Data[f];
-                float[] dst = new float[Joints * 3];
-                Array.Copy(src, dst, Joints * 3);
+                float[] dst = new float[joints * 3];
+                Array.Copy(src, dst, joints * 3);
                 positions[f] = dst;
             }
         }
@@ -99,17 +68,17 @@ public class MotionController : ControllerBase
             for (int f = 0; f < frames; f++)
             {
                 float[] src = motion.Data[f];
-                float[] dst = new float[Joints * 3];
+                float[] dst = new float[joints * 3];
 
                 // Joint 0 (root): keep xz at origin, lift by root_y.
                 dst[0] = 0f;
                 dst[1] = src[3];
                 dst[2] = 0f;
 
-                const int JointOffset = 4;
-                for (int j = 1; j < Joints; j++)
+                const int jointOffset = 4;
+                for (int j = 1; j < joints; j++)
                 {
-                    int s = JointOffset + (j - 1) * 3;
+                    int s = jointOffset + (j - 1) * 3;
                     int d = j * 3;
                     dst[d + 0] = src[s + 0];
                     dst[d + 1] = src[s + 1];
@@ -129,7 +98,7 @@ public class MotionController : ControllerBase
             split,
             caption = "",
             frameCount = frames,
-            joints = Joints,
+            joints = joints,
             positions,
             edges = SmplEdges,
             jointGroup = SmplJointGroups
