@@ -28,6 +28,4 @@ public class NumpyFileLoaderController(IIOFactory ioFactory) : ControllerBase
 
     [HttpGet("random")]
     public MotionArray GetRandom() => ioFactory.LoadRandom();
-
-    // --- Three.js frontend API ---
 }
