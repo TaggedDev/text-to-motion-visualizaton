@@ -1,11 +1,9 @@
-using motion_data_visualization.ModelLoader;
 using MotionDataVisualization.IOFactory;
 using MotionDataVisualization.DLModels;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IIOFactory, NpyIOFactory>();
-builder.Services.AddSingleton<IModelLoader, ModelLoader>();
 builder.Services.AddSingleton<ClipModel>();
 builder.Services.AddControllers();
 
