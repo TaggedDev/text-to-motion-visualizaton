@@ -23,3 +23,8 @@ A part of my Bachelor's diploma (2026) - Generative Human Motion Generation mode
 - .NET 8
 - Download the HumanML3D dataset and adjust the `appsettings.json`
 - Put the [`clip-text-vit-32-float32-int32.onnx`](https://huggingface.co/rocca/openai-clip-js/blob/main/clip-text-vit-32-float32-int32.onnx) and [`tokenizer.json`](https://huggingface.co/Xenova/clip-vit-base-patch16/blob/main/tokenizer.json) downloaded from hugging face to the Weights/ folder in the project root.
+
+---
+
+![example_animation.png](github-images%2Fexample_animation.png)
+![example_embeddings.png](github-images%2Fexample_embeddings.png)

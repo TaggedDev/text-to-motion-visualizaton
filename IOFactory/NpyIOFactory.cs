@@ -7,6 +7,7 @@ public class NpyIOFactory : IIOFactory
 {
     private readonly Dictionary<string, string> _filesByName;
     private readonly string[] _names;
+    private readonly string _annotationPath;
 
     public NpyIOFactory(IConfiguration configuration)
     {
@@ -19,6 +20,12 @@ public class NpyIOFactory : IIOFactory
         _filesByName = Directory.GetFiles(rootPath, "*.npy")
             .ToDictionary(path => Path.GetFileName(path), path => path);
         _names = _filesByName.Keys.OrderBy(n => n).ToArray();
+
+        _annotationPath = configuration["Dataset:Annotation"]
+            ?? throw new InvalidOperationException("Dataset:Annotation is not configured.");
+
+        if (!Directory.Exists(_annotationPath))
+            throw new DirectoryNotFoundException($"Annotation path not found: {_annotationPath}");
     }
 
     public int GetFileCount() => _names.Length;
@@ -40,6 +47,31 @@ public class NpyIOFactory : IIOFactory
 
         string name = _names[Random.Shared.Next(_names.Length)];
         return LoadFromPath(name, _filesByName[name]);
+    }
+
+    public string GetAnnotation(string name)
+    {
+        // Convert animation name (e.g., "000001.npy") to annotation name (e.g., "000001.txt")
+        string baseName = Path.GetFileNameWithoutExtension(name);
+        string annotationFile = Path.Combine(_annotationPath, baseName + ".txt");
+
+        if (!File.Exists(annotationFile))
+            return "";
+
+        try
+        {
+            string firstLine = File.ReadLines(annotationFile).FirstOrDefault() ?? "";
+            if (string.IsNullOrWhiteSpace(firstLine))
+                return "";
+
+            // Split by '#' and join with ' | ' separator
+            string[] parts = firstLine.Split('#');
+            return string.Join(" | ", parts.Select(p => p.Trim()));
+        }
+        catch
+        {
+            return "";
+        }
     }
 
     private static MotionArray LoadFromPath(string name, string path)

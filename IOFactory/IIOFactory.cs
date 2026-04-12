@@ -8,4 +8,5 @@ public interface IIOFactory
     IReadOnlyList<string> GetFileNames();
     MotionArray LoadByName(string name);
     MotionArray LoadRandom();
+    string GetAnnotation(string name);
 }
