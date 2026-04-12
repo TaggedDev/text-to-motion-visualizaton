@@ -17,7 +17,7 @@ public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBas
             {
                 id = Path.GetFileNameWithoutExtension(name),
                 split = "all",
-                caption = "",
+                caption = ioFactory.GetAnnotation(name),
                 frameCount = 0 // populated on selection
             });
     }
@@ -96,7 +96,7 @@ public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBas
         {
             id,
             split,
-            caption = "",
+            caption = ioFactory.GetAnnotation(name),
             frameCount = frames,
             joints = joints,
             positions,
