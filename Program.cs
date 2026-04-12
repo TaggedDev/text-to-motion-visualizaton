@@ -6,7 +6,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IIOFactory, NpyIOFactory>();
 builder.Services.AddSingleton<IModelLoader, ModelLoader>();
-builder.Services.AddSingleton<CLIPModel>();
+builder.Services.AddSingleton<ClipModel>();
 builder.Services.AddControllers();
 
 WebApplication app = builder.Build();

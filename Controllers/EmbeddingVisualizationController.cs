@@ -10,7 +10,7 @@ namespace MotionDataVisualization.Controllers;
 /// <param name="clipModel">A model that will compute sentence embedding</param>
 [ApiController]
 [Route("api/embedding-visualization")]
-public class EmbeddingVisualizationController(CLIPModel clipModel) : ControllerBase
+public class EmbeddingVisualizationController(ClipModel clipModel) : ControllerBase
 {
     [HttpPost("embed")]
     public ActionResult<EmbedResponse> Embed([FromBody] EmbedRequest request)

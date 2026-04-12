@@ -2,7 +2,7 @@
 
 namespace MotionDataVisualization.DLModels;
 
-public class CLIPTokenizer
+public class ClipTokenizer
 {
     private const string TokenizerJSONFilename = "tokenizer.json";
     private const string TokenizerFileFolder = "Weights";
@@ -10,7 +10,7 @@ public class CLIPTokenizer
 
     private readonly Tokenizer _tokenizer;
 
-    public CLIPTokenizer()
+    public ClipTokenizer()
     {
         string tokenizerPath = Path.Combine(TokenizerFileFolder, TokenizerJSONFilename);
         _tokenizer = new Tokenizer(tokenizerPath);

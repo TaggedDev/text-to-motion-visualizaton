@@ -4,15 +4,15 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace MotionDataVisualization.DLModels;
 
-public class CLIPModel
+public class ClipModel
 {
     private const string ModelFileName = "clip-text-vit-32-float32-int32.onnx";
     private const string ModelUrl = "https://huggingface.co/rocca/openai-clip-js/resolve/main/clip-text-vit-32-float32-int32.onnx";
     
     private readonly InferenceSession _session;
-    private readonly CLIPTokenizer _tokenizer;
+    private readonly ClipTokenizer _tokenizer;
 
-    public CLIPModel()
+    public ClipModel()
     {
         string weightsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Weights");
         Directory.CreateDirectory(weightsDir);
@@ -25,7 +25,7 @@ public class CLIPModel
             webClient.DownloadFile(ModelUrl, modelPath);
         }
 
-        _tokenizer = new CLIPTokenizer();
+        _tokenizer = new ClipTokenizer();
         _session = new InferenceSession(modelPath);
     }
 
