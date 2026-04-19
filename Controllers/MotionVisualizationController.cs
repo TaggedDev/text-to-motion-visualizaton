@@ -42,50 +42,25 @@ public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBas
 
         int frames = motion.Shape[0];
         int featureDim = motion.Shape[1];
-        const int joints = 22;
 
-        float[][] positions = new float[frames][];
+        float[][] positions;
 
-        if (featureDim == joints * 3)
+        if (featureDim == MotionDecoder.Joints * 3)
         {
             // Raw joint positions: [frames, 66]
+            positions = new float[frames][];
             for (int f = 0; f < frames; f++)
             {
                 float[] src = motion.Data[f];
-                float[] dst = new float[joints * 3];
-                Array.Copy(src, dst, joints * 3);
+                float[] dst = new float[MotionDecoder.Joints * 3];
+                Array.Copy(src, dst, MotionDecoder.Joints * 3);
                 positions[f] = dst;
             }
         }
         else if (featureDim == 263)
         {
-            // HumanML3D new_joint_vecs format:
-            //   [0]        root rotation velocity
-            //   [1..2]     root linear velocity xz
-            //   [3]        root y
-            //   [4 .. 4+63] (joints-1)*3 local joint positions
-            //   remaining  rotations, velocities, foot contacts
-            for (int f = 0; f < frames; f++)
-            {
-                float[] src = motion.Data[f];
-                float[] dst = new float[joints * 3];
-
-                // Joint 0 (root): keep xz at origin, lift by root_y.
-                dst[0] = 0f;
-                dst[1] = src[3];
-                dst[2] = 0f;
-
-                const int jointOffset = 4;
-                for (int j = 1; j < joints; j++)
-                {
-                    int s = jointOffset + (j - 1) * 3;
-                    int d = j * 3;
-                    dst[d + 0] = src[s + 0];
-                    dst[d + 1] = src[s + 1];
-                    dst[d + 2] = src[s + 2];
-                }
-                positions[f] = dst;
-            }
+            // HumanML3D new_joint_vecs format: use shared decoder
+            positions = MotionDecoder.Decode263ToPositions(motion.Data);
         }
         else
         {
@@ -98,30 +73,10 @@ public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBas
             split,
             caption = ioFactory.GetAnnotation(name),
             frameCount = frames,
-            joints = joints,
+            joints = MotionDecoder.Joints,
             positions,
-            edges = SmplEdges,
-            jointGroup = SmplJointGroups
+            edges = MotionDecoder.SmplEdges,
+            jointGroup = MotionDecoder.SmplJointGroups
         });
     }
-
-    // SMPL 22-joint skeleton (HumanML3D subset).
-    private static readonly int[][] SmplEdges =
-    {
-        new[] { 0, 1 }, new[] { 0, 2 }, new[] { 0, 3 },
-        new[] { 1, 4 }, new[] { 2, 5 }, new[] { 3, 6 },
-        new[] { 4, 7 }, new[] { 5, 8 }, new[] { 6, 9 },
-        new[] { 7, 10 }, new[] { 8, 11 }, new[] { 9, 12 },
-        new[] { 9, 13 }, new[] { 9, 14 }, new[] { 12, 15 },
-        new[] { 13, 16 }, new[] { 14, 17 }, new[] { 16, 18 },
-        new[] { 17, 19 }, new[] { 18, 20 }, new[] { 19, 21 },
-    };
-
-    private static readonly string[] SmplJointGroups =
-    {
-        "spine", "left_leg", "right_leg", "spine", "left_leg", "right_leg",
-        "spine", "left_leg", "right_leg", "spine", "left_leg", "right_leg",
-        "spine", "left_arm", "right_arm", "spine",
-        "left_arm", "right_arm", "left_arm", "right_arm", "left_arm", "right_arm",
-    };
 }

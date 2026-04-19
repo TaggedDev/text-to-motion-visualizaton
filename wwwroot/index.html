@@ -11,7 +11,9 @@
     width: 320px; background: #16213e; display: flex; flex-direction: column;
     border-right: 1px solid #0f3460;
   }
-  #sidebar h2 { padding: 12px 16px; font-size: 14px; color: #e94560; border-bottom: 1px solid #0f3460; }
+  #sidebar h2 { padding: 12px 16px; font-size: 14px; color: #e94560; border-bottom: 1px solid #0f3460; display: flex; justify-content: space-between; align-items: center; }
+  #sidebar h2 a { color: #666; text-decoration: none; font-size: 12px; }
+  #sidebar h2 a:hover { color: #e94560; }
   #search {
     margin: 8px; padding: 6px 10px; background: #1a1a2e; border: 1px solid #0f3460;
     color: #e0e0e0; font-family: monospace; font-size: 12px; border-radius: 4px;
@@ -61,7 +63,7 @@
 <body>
 
 <div id="sidebar">
-  <h2>Animations</h2>
+  <h2>Animations <a href="/generate">Text to Motion →</a></h2>
   <input id="search" type="text" placeholder="Filter by ID or caption...">
   <ul id="anim-list"></ul>
 </div>

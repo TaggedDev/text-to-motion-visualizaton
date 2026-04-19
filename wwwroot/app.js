@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { buildSkeleton, updateSkeletonFrame } from './skeleton-renderer.js';
 
 // --- DOM refs ---
 const canvas = document.getElementById('canvas');
@@ -33,15 +34,6 @@ scene.add(dirLight);
 // Ground grid
 const grid = new THREE.GridHelper(10, 20, 0x0f3460, 0x0a1530);
 scene.add(grid);
-
-// --- Group colors ---
-const groupColors = {
-  spine:     0xffffff,
-  left_leg:  0x4488ff,
-  right_leg: 0xff4444,
-  left_arm:  0x44ff88,
-  right_arm: 0xffaa22,
-};
 
 // --- State ---
 let animData = null;       // current loaded animation
@@ -116,76 +108,12 @@ async function selectAnimation(split, id, li) {
   timeline.value = 0;
   updateFrameInfo();
 
-  buildSkeleton();
-  updateSkeletonFrame(0);
+  const { jointMeshes: jm, boneLine: bl } = buildSkeleton(scene, animData);
+  jointMeshes = jm;
+  boneLine = bl;
+  updateSkeletonFrame(animData, jointMeshes, boneLine, 0);
 }
 
-// --- Build skeleton meshes ---
-function buildSkeleton() {
-  // Remove old
-  for (const m of jointMeshes) scene.remove(m);
-  if (boneLine) scene.remove(boneLine);
-  jointMeshes = [];
-
-  const jointGeo = new THREE.SphereGeometry(0.025, 8, 8);
-
-  for (let j = 0; j < animData.joints; j++) {
-    const color = groupColors[jointGroupData[j]] || 0xcccccc;
-    const mat = new THREE.MeshStandardMaterial({ color });
-    const mesh = new THREE.Mesh(jointGeo, mat);
-    scene.add(mesh);
-    jointMeshes.push(mesh);
-  }
-
-  // Bone lines
-  const linePositions = new Float32Array(edgeData.length * 2 * 3);
-  const lineColors = new Float32Array(edgeData.length * 2 * 3);
-  const lineGeo = new THREE.BufferGeometry();
-  lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-  lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
-
-  const lineMat = new THREE.LineBasicMaterial({ vertexColors: true, linewidth: 2 });
-  boneLine = new THREE.LineSegments(lineGeo, lineMat);
-  scene.add(boneLine);
-}
-
-// --- Update positions for a given frame ---
-function updateSkeletonFrame(frame) {
-  if (!animData) return;
-
-  const pos = animData.positions[frame]; // 66 floats: 22 joints x 3
-
-  for (let j = 0; j < animData.joints; j++) {
-    const x = pos[j * 3];
-    const y = pos[j * 3 + 1];
-    const z = pos[j * 3 + 2];
-    jointMeshes[j].position.set(x, y, z);
-  }
-
-  // Update bone lines
-  const linePos = boneLine.geometry.attributes.position.array;
-  const lineCol = boneLine.geometry.attributes.color.array;
-
-  for (let i = 0; i < edgeData.length; i++) {
-    const [src, dst] = edgeData[i];
-    const si = i * 6;
-
-    linePos[si]     = pos[src * 3];
-    linePos[si + 1] = pos[src * 3 + 1];
-    linePos[si + 2] = pos[src * 3 + 2];
-    linePos[si + 3] = pos[dst * 3];
-    linePos[si + 4] = pos[dst * 3 + 1];
-    linePos[si + 5] = pos[dst * 3 + 2];
-
-    // Color both ends with the child joint's group color
-    const color = new THREE.Color(groupColors[jointGroupData[dst]] || 0xcccccc);
-    lineCol[si]     = color.r; lineCol[si + 1] = color.g; lineCol[si + 2] = color.b;
-    lineCol[si + 3] = color.r; lineCol[si + 4] = color.g; lineCol[si + 5] = color.b;
-  }
-
-  boneLine.geometry.attributes.position.needsUpdate = true;
-  boneLine.geometry.attributes.color.needsUpdate = true;
-}
 
 // --- Playback controls ---
 playBtn.addEventListener('click', () => {
@@ -196,7 +124,7 @@ playBtn.addEventListener('click', () => {
 
 timeline.addEventListener('input', () => {
   currentFrame = parseInt(timeline.value);
-  updateSkeletonFrame(currentFrame);
+  updateSkeletonFrame(animData, jointMeshes, boneLine, currentFrame);
   updateFrameInfo();
 });
 
@@ -232,7 +160,7 @@ function animate(time) {
         currentFrame = 0;
       }
       timeline.value = currentFrame;
-      updateSkeletonFrame(currentFrame);
+      updateSkeletonFrame(animData, jointMeshes, boneLine, currentFrame);
       updateFrameInfo();
     }
   }
