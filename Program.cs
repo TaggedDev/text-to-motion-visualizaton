@@ -1,13 +1,20 @@
 using MotionDataVisualization.IOFactory;
 using MotionDataVisualization.DLModels;
 using MotionDataVisualization.Models;
+using Text2Motion.TorchTrainer;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("configs/gcn-spatial-temporal.json", optional: false, reloadOnChange: false);
 
 builder.Services.AddSingleton<IIOFactory, NpyIOFactory>();
 builder.Services.AddSingleton<ClipModel>();
 builder.Services.Configure<Text2MotionSettings>(
     builder.Configuration.GetSection("Text2Motion"));
+builder.Services.Configure<GcnSpatialTemporalConfig>(
+    builder.Configuration.GetSection("GcnSpatialTemporalConfig"));
+builder.Services.Configure<DatasetSettings>(
+    builder.Configuration.GetSection("DatasetSettings"));
 builder.Services.AddSingleton<Text2MotionModel>();
 builder.Services.AddControllers();
 

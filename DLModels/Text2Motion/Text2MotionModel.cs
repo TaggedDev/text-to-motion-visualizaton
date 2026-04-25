@@ -8,26 +8,20 @@ namespace MotionDataVisualization.DLModels;
 
 public sealed class Text2MotionModel : IDisposable
 {
-    private readonly BaselineMLPModel _mlp;
+    private readonly GcnSpatialTemporalModel _gcn;
     private readonly float[] _mean;
     private readonly float[] _std;
     private readonly int _fixedFrames;
     private readonly int _featureDim;
 
-    public Text2MotionModel(IOptions<Text2MotionSettings> options)
+    public Text2MotionModel(
+        IOptions<Text2MotionSettings> options,
+        IOptions<GcnSpatialTemporalConfig> gcnConfig,
+        IOptions<DatasetSettings> datasetSettings)
     {
         var cfg = options.Value;
 
-        var trainerSettings = new ModelSettings
-        {
-            FixedFrames = cfg.FixedFrames,
-            FeatureDim = cfg.FeatureDim,
-            TextEmbeddingDim = cfg.TextEmbeddingDim,
-            HiddenDim = cfg.HiddenDim,
-            NumHiddenLayers = cfg.NumHiddenLayers,
-        };
-
-        _mlp = new BaselineMLPModel(Options.Create(trainerSettings));
+        _gcn = new GcnSpatialTemporalModel(gcnConfig, datasetSettings);
 
         string weightsDir = Path.IsPathRooted(cfg.WeightsDirectory)
             ? cfg.WeightsDirectory
@@ -36,14 +30,14 @@ public sealed class Text2MotionModel : IDisposable
         if (!Directory.Exists(weightsDir))
             throw new DirectoryNotFoundException($"Weights directory not found: {weightsDir}");
 
-        string[] ptFiles = Directory.GetFiles(weightsDir, "*.pt");
+        string[] ptFiles = Directory.GetFiles(weightsDir, "GCN-*.pt");
         if (ptFiles.Length == 0)
-            throw new FileNotFoundException($"No .pt files found in {weightsDir}");
+            throw new FileNotFoundException($"No GCN-*.pt files found in {weightsDir}");
 
         try
         {
-            _mlp.load(ptFiles[0]);
-            _mlp.eval();
+            _gcn.load(ptFiles[0]);
+            _gcn.eval();
         }
         catch (Exception ex)
         {
@@ -54,8 +48,8 @@ public sealed class Text2MotionModel : IDisposable
 
         _mean = LoadNpy(cfg.NormalizationMeanPath);
         _std = LoadNpy(cfg.NormalizationStdPath);
-        _fixedFrames = cfg.FixedFrames;
-        _featureDim = cfg.FeatureDim;
+        _fixedFrames = datasetSettings.Value.FixedFrames;
+        _featureDim = datasetSettings.Value.FeatureDim;
     }
 
     public float[][] GenerateMotion(float[] textEmbedding)
@@ -65,7 +59,7 @@ public sealed class Text2MotionModel : IDisposable
 
         using var inputTensor = tensor(textEmbedding).unsqueeze(0);
         using var noGrad = no_grad();
-        using var outputTensor = _mlp.forward(inputTensor);
+        using var outputTensor = _gcn.forward(inputTensor);
 
         float[] flat = outputTensor.squeeze(0).data<float>().ToArray();
 
@@ -85,7 +79,7 @@ public sealed class Text2MotionModel : IDisposable
 
     public void Dispose()
     {
-        _mlp?.Dispose();
+        _gcn?.Dispose();
     }
 
     private static float[] LoadNpy(string path)
