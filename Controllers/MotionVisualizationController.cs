@@ -22,6 +22,35 @@ public class MotionVisualizationController(IIOFactory ioFactory) : ControllerBas
             });
     }
 
+    [HttpGet("test/motion-decoder")]
+    public IActionResult TestMotionDecoder()
+    {
+        float[][] testData = MotionDecoder.GenerateTestData(frames: 60, seed: 42);
+
+        var (positions, hasNaNs, hasInfs) = MotionDecoder.DecodeWithValidation(testData);
+
+        if (hasNaNs || hasInfs)
+        {
+            return BadRequest(new
+            {
+                error = "Validation failed",
+                hasNaNs,
+                hasInfs
+            });
+        }
+
+        return Ok(new
+        {
+            status = "success",
+            frameCount = positions.Length,
+            joints = MotionDecoder.Joints,
+            positions,
+            edges = MotionDecoder.SmplEdges,
+            jointGroup = MotionDecoder.SmplJointGroups,
+            message = "Test data generated and decoded successfully. No NaNs or Infs."
+        });
+    }
+
     [HttpGet("animation/{split}/{id}")]
     public IActionResult GetAnimation(string split, string id)
     {
